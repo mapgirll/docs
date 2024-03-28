@@ -9,25 +9,28 @@ This guide will walk Kubernetes users through how to approach and implement segm
 
 ## Overview
 
-Anyone who has a need to segment systems in their organization can use Calico's network policies to isolate, protect and secure Kubernetes workloads, namespaces, tenants, and hosts. This approach enhances the security and control of a network by limiting communication between different segments which has the benefit of isolating critical workloads, preventing lateral movement of threats, and meeting compliance requirements.
+#### What is microsegmentation?
+Anyone who has a need to segment containerized systems in their organization can use [Calico's network policies](https://docs.tigera.io/calico/latest/network-policy/get-started/calico-policy/calico-network-policy) to isolate, protect and secure Kubernetes workloads, namespaces, tenants, and hosts. This approach enhances the security and control of a network by limiting communication between different segments which has the benefit of isolating critical workloads, preventing lateral movement of threats, and meeting compliance requirements.
 
+#### Why use Calico for microsegmentation?
 Traditional firewalls, some of which Calico can integrate with, are well suited to securing system perimeters, but were not designed with dynamic, containerized environments in mind. Instead, segmentation is implemented using purpose-built network policies that allow for different levels of granularity to secure workloads, applications, namespaces, or clusters. Network policies are the tool of choice for achieving network security over traditional firewalls due to their ability to apply to Kubernetes objects based on label selectors and not IP addresses, which are often dynamic and ephemeral. 
 
 Calico has a range of functionality that makes implementing microsegmentation in containerized environments easier and faster.
-In Project Calico (Open Source), Calico network policy extends the functionality of Kubernetes network policies to:
+Calico network policy extends the functionality of Kubernetes network policies to:
 - support global network polices (write fewer policies than span across a cluster)
 - protect hosts, VMs, pods
 - scale effectively
 - additional actions, such as deny and log
 - more flexible match rules
 
-Commercial Calico products, such as Calico Enterprise or Calico Cloud, support the above but include a browser-based user interface that supports:
+Commercial Calico products, such as Calico Enterprise or Calico Cloud, support the above but include a browser-based user interface and additional features:
 - advanced policy organization, management and visualization,
 - observability features,
 - automatic policy recomendations,
-- DNS policy
+- DNS policy,
 - policy staging, and more.
 
+#### Types of segmentation
 When organizations need to segment and isolate their Kubernetes environments this is typically done at three different levels: [Workload Isolation](https://www.tigera.io/blog/enabling-microsegmentation-with-calico-enterprise-2/), [Namespace Isolation](https://www.tigera.io/blog/automated-namespace-isolation-with-calico/) and [Tenant Isolation](https://www.tigera.io/blog/deep-dive/implementing-tenant-isolation-in-multi-tenant-kubernetes-clusters/).
 
 <details>
@@ -49,7 +52,7 @@ When cluster infrastructure is shared between tenants there may be an organizati
 This protects each tenant from lateral movement at an infrastructure level where a malicious or opportunistic actor may seek to obtain or steal high value assets, damage or misuse applications. If one tenant is compromised, the risk to other tenants on the same infrastructure is significantly reduced.
 </details>
 
-## Concepts and Context to Understand
+## Concepts and Context to Understand (before implementing microsegmentation)
 
 Before implementing a segmentation strategy in a cluster there are a few key high-level concepts that must be understood.
 These are:
@@ -96,7 +99,7 @@ Calico security policies are:
 
 All Calico products support label-based policies that can be applied to either a namespace or cluster-wide (global) scope.
 
-In Kubernetes clusters, by default, without any policies in place, each microservice is allowed to communicate with each other, and with any external endpoints freely.
+By default, if no policies exist, then all ingress and egress traffic is allowed to and from pods in that namespace. 
 
 ### Default Deny
 
@@ -122,7 +125,7 @@ The diagram below shows an example of how policies for different security domain
 
 #### Global vs Namespace Policies
 
-Calico supports global network policy (```kind: GlobalNetworkPolicy```); a non-namespaced resource containing rules which are applied to any endpoints (pods, VMs, host interfaces) that match a selector.
+Calico supports global network policy ```kind: GlobalNetworkPolicy```; a non-namespaced resource containing rules which are applied to any endpoints (pods, VMs, host interfaces) that match a selector.
 Network policy is a namespaced resource that only applies to workload endpoint resources (pods, containers, VMs) within that namespace. 
 
 #### Network Policy Management
@@ -150,13 +153,13 @@ Staged policy lets you test the traffic impact of the policy as if it were enfor
 
 To implement microsegmentation it is recommended to follow a structured and repeatable approach to increase likelihood of success. These can be summarized into four broad steps:
 
-1. **Identify the security domains** for which microsegmentation will be enforced, who will be responsible for them, who or which services need access to those security domains. 
+1. [**Identify the security domains**](./microsegmentation#identification-of-security-domains) for which microsegmentation will be enforced, who will be responsible for them, who or which services need access to those security domains. 
 
-2. **[Define a policy](https://docs.tigera.io/calico-enterprise/latest/network-policy/beginners/)** model using documented microservice communication for your application(s) or by analyzing traffic flows. When defining policies you should also consider: the scope of policies (global/namespace), who will be writing and applying the policies, and policy order (or tiers).
+2. **[Define a policy](./microsegmentation#developing-policy-framework)** model using documented microservice communication for your application(s) or by analyzing traffic flows. When defining policies you should also consider: the scope of policies (global/namespace), who will be writing and applying the policies, and policy order (or tiers).
 
-3. **[Author and deploy security policies](https://docs.tigera.io/calico-enterprise/latest/network-policy/staged-network-policies)**. Once all of the correct allow policies are in place, stage a [default deny posture](https://docs.tigera.io/calico-enterprise/latest/network-policy/default-deny). You may want to identify a low-impact application or security domain first to understand and evaluate the process before prioritizing segmentation of critical security domains.
+3. **[Author and deploy security policies](./microsegmentation#deploy-security-policies)**. Once all of the correct allow policies are in place, stage a [default deny policy](./microsegmentation#enforce-default-deny). You may want to identify a low-impact application or security domain first to understand and evaluate the process before prioritizing segmentation of critical security domains.
 
-4. **Re-assess any flows** or new applications that may require policy remediation before enforcing a default-deny. In Project Calico, where staged policies are not supported, enforce a default deny in a staging environment to correct any policies prior to enforcing in production.
+4. [**Re-assess any flows**](./microsegmentation#monitor-review-refine) or new applications that may require policy remediation before enforcing a default-deny. In Project Calico, where staged policies are not supported, enforce a default deny in a staging environment to correct any policies prior to enforcing in production.
 
 ### Identification of security domains
 
