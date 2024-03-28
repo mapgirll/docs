@@ -170,10 +170,10 @@ Starting with a low-risk implementation in a staging environment allows you to d
 For more information on meeting compliance requirements beyond microsegmentation, review one of our [whitepapers](https://www.tigera.io/resources/?_sft_types=white-paper&_sft_Resource_Topics=compliance).
 
 Consideration checklist:
-- Compliance requirements
-- Vulnerability or susceptibility to attack
-- Organizational security posture (zero-trust will require more stringent segmentation)
-- Criticality of applications or security domains
+- [] Compliance requirements
+- [] Vulnerability or susceptibility to attack
+- [] Organizational security posture (zero-trust will require more stringent segmentation)
+- [] Criticality of applications or security domains
 
 ### Developing Policy Framework
 
@@ -185,11 +185,11 @@ You may need to consider:
 - [Do you need to protect hosts (and configure that)?](https://docs.tigera.io/calico-enterprise/latest/network-policy/hosts/)
 - [Who is responsible for defining policies for different security domains?](https://docs.tigera.io/calico-enterprise/latest/network-policy/policy-best-practices#determine-who-can-write-policy)
 - [What order should policies be applied in?](https://docs.tigera.io/calico-enterprise/latest/network-policy/policy-tiers/policy-tutorial-ui#policy-ordering)
-- And [Tier](https://docs.tigera.io/calico-enterprise/latest/network-policy/policy-tiers/policy-tutorial-ui#tiers), for Calico Cloud or Enterprise users.
+- Policy [Tiers](https://docs.tigera.io/calico-enterprise/latest/network-policy/policy-tiers/policy-tutorial-ui#tiers), for Calico Cloud or Enterprise users.
 
-Policy models may be easier to produce if an application has documentation stating how microservices communicate over which protocols and ports. A ‘shift left’ approach also puts the onus on individuals who are more familiar with communication dependencies and can define accurate policy.
+Policy models may be easier to produce if an application has documentation stating how microservices communicate over which protocols and ports. A ‘shift left’ approach also puts the onus on individuals or developers who are more familiar with communication dependencies and can define accurate policy.
 
-If you’re using Calico Open Source and struggling to analyze traffic flows, you may find it easier to install a text scraping tool (Fluent Bit) and pass log information to a text processing software (Elastic). This would enable Open Source users to see layer 2-3 logs and build policies from that.
+If you’re using Calico Open Source and struggling to analyze traffic flows, you may find it easier to install a text scraping tool (Fluent Bit) and pass log information to a text processing software (Elastic). This would enable Project Calico users to see layer 2-3 logs and build policies from that.
 
 Calico Cloud and Enterprise users have multiple tools available to analyze flows:
 [Dynamic Service and Threat Graph](https://docs.tigera.io/calico-cloud/tutorials/calico-cloud-features/tour#service-graph) is a topographical visualization of workload communication. Through this feature, you can access flow logs that show metadata for source and destination endpoints, as well as any policies that apply to the flow and the outcome.
@@ -218,12 +218,15 @@ The previous steps should set you up for success when creating policies because 
 Before authoring any policies you may want to review the best practices for network policies in: [Calico Open Source](https://docs.tigera.io/calico/3.26/about/kubernetes-training/about-network-policy#best-practices-for-network-policies), [Calico Enterprise](https://docs.tigera.io/calico-enterprise/3.17/network-policy/policy-best-practices#policy-best-practices-for-day-one-zero-trust), [Calico Cloud](https://docs.tigera.io/calico-cloud/tutorials/training/about-network-policy#best-practices-for-network-policies).
 
 To make policy writing easier and faster, Calico Enterprise and Calico Cloud has a number of features you may want to consider:
-*Graphical Policy Editor:* [Calico Cloud](https://docs.tigera.io/calico-cloud/network-policy/policy-tiers/policy-tutorial-ui#create-a-network-policy) and [Calico Enterprise](https://docs.tigera.io/calico-enterprise/3.17/network-policy/policy-tiers/policy-tutorial-ui#create-a-network-policy) have a ‘Create Policy’ GUI to create, edit and delete policies. Policies that have been created in the GUI can be downloaded as YAML.
-*DNS Policies:* [If you need to limit traffic to/from external non-Calico workloads or networks you can use external IPs or network rules.](https://docs.tigera.io/calico-enterprise/3.17/network-policy/beginners/policy-rules/external-ips-policy)
-*Automatic policy recommendations:* Calico Cloud and Calico Enterprise also support [automatic policy recommendations](https://docs.tigera.io/calico-enterprise/latest/network-policy/recommendations/policy-recommendations) that automatically generate network policy to isolate namespaces. Policy recommendations can also be generated for specific namespaces or workloads for a more granular segmentation strategy. Policy Recommendations makes it easier and faster for platform operators to implement namespace isolation at scale or without experience in authoring network policies or detailed knowledge of how application workloads are communicating. Calico analyzes the flow logs that are generated from workloads, and automatically recommends and stages policies for each namespace that can be used for isolation. All recommended polices are staged by default. This allows you to preview the impact of a policy without impacting traffic flow, to assess the effectiveness of a policy, or to evaluate any unintended side-effects.
+**Graphical Policy Editor:** [Calico Cloud](https://docs.tigera.io/calico-cloud/network-policy/policy-tiers/policy-tutorial-ui#create-a-network-policy) and [Calico Enterprise](https://docs.tigera.io/calico-enterprise/3.17/network-policy/policy-tiers/policy-tutorial-ui#create-a-network-policy) have a ‘Create Policy’ GUI to create, edit and delete policies. Policies that have been created in the GUI can be downloaded as YAML.
+
+**DNS Policies:** [If you need to limit traffic to/from external non-Calico workloads or networks you can use external IPs or network rules.](https://docs.tigera.io/calico-enterprise/3.17/network-policy/beginners/policy-rules/external-ips-policy)
+
+**Automatic policy recommendations:** Calico Cloud and Calico Enterprise also support [automatic policy recommendations](https://docs.tigera.io/calico-enterprise/latest/network-policy/recommendations/policy-recommendations) that automatically generate network policy to isolate namespaces. Policy recommendations can also be generated for specific namespaces or workloads for a more granular segmentation strategy. Policy Recommendations makes it easier and faster for platform operators to implement namespace isolation at scale or without experience in authoring network policies or detailed knowledge of how application workloads are communicating. 
+Calico analyzes the flow logs that are generated from workloads, and automatically recommends and stages policies for each namespace that can be used for isolation. All recommended polices are staged by default. This allows you to preview the impact of a policy without impacting traffic flow, to assess the effectiveness of a policy, or to evaluate any unintended side-effects.
 [Policy recommendations need to be enabled](https://docs.tigera.io/calico-enterprise/3.17/network-policy/recommendations/policy-recommendations#activate-and-review-policy-recommendations) per cluster and may take time to learn and analyze flows before providing recommendations.
 
-All version of Calico support both Kubernetes network policy and Calico network policy. 
+All versions of Calico support both Kubernetes network policy and Calico network policy. 
 
 ### Deploy Security Policies
 
@@ -316,10 +319,32 @@ Steps to an enforced default-deny posture:
 In the last step, new traffic flows are introduced to the application workloads to assess the impact and identify any defunct security policies for remediation.
 
 There are a few ways to monitor and review whether policies are effective:
-*Policies Board:* In Calico Cloud or Calico Enterprise, the policies board will be the first sign of misconfigurations, making it easy to spot policies that are denying traffic or have no endpoints assigned to them.
-*Observability:* Calico Enterprise and Calico Cloud have multiple features that allow easy visual identification of potentially misconfigured policies: Service Graph, FlowViz, Policy Board, Dashboards. Commercial Calico products also include Kibana as a frontend for ElasticSearch providing richer functionality for dashboards and logs where KQL queries can be written. For an in-depth demonstration of this functionality check out [this video series](https://fast.wistia.com/embed/channel/lhjf79y3oy?wchannelid=lhjf79y3oy)
-*Use curl or netcat:* While testing policies, additional pods can deployed within different security domains to use curl or netcat to test connectivity to different pods or services. These pods can be labelled to mimic other services (and have different policies apply to them) to verify connectivity.
-*Logs:* Calico supports a log action within network policies, and additionally Calico Enterprise and Calico Cloud collect a wide range of logs that can be used to investigate flows and validate policies.
-*Simulate your application or service:* Using and testing the deployed application and a wide range of it's functionality should show whether there are any issues after deploying policies.
+
+**Policies Board:** In Calico Cloud or Calico Enterprise, the policies board will be the first sign of misconfigurations, making it easy to spot policies that are denying traffic or have no endpoints assigned to them.
+
+**Observability:** Calico Enterprise and Calico Cloud have multiple features that allow easy visual identification of potentially misconfigured policies: Service Graph, FlowViz, Policy Board, Dashboards. Commercial Calico products also include Kibana as a frontend for ElasticSearch providing richer functionality for dashboards and logs where KQL queries can be written. For an in-depth demonstration of this functionality check out [this video series](https://fast.wistia.com/embed/channel/lhjf79y3oy?wchannelid=lhjf79y3oy)
+
+**Use curl or netcat:** While testing policies, additional pods can deployed within different security domains to use curl or netcat to test connectivity to different pods or services. These pods can be labelled to mimic other services (and have different policies apply to them) to verify connectivity.
+
+``` bash
+kubectl exec multitool --stdin --tty -- /bin/bash
+bash-5.1# nc -zvw 3 10.0.214.232 7070
+nc: 10.0.214.232 (10.0.214.232:7070): Operation timed out
+```
+*Here netcat is testing communication to a service on port 7070. The connection timed out, which indicates a policy is correctly blocking traffic.*
+
+``` bash
+kubectl exec multitool --stdin --tty -- /bin/bash
+bash-5.1# curl -I 10.49.14.192
+HTTP/1.1 200 OK
+Set-Cookie: shop_session-id=772c5095-11f5-4bb0-9d42-0ef8dcda9707; Max-Age=172800
+Date: Wed, 26 Jan 2022 20:21:54 GMT
+Content-Type: text/html; charset=utf-8
+```
+*Here curl is testing communication to a frontend site. The response returned a 200 OK, which indicates a policy is correctly allowing traffic.*
+
+**Logs:** Calico supports a log action within network policies, and additionally Calico Enterprise and Calico Cloud collect a wide range of logs that can be used to investigate flows and validate policies.
+
+**Simulate your application or service:** Using and testing the deployed application and a wide range of it's functionality should show whether there are any issues after deploying policies.
 
 If you need to create new policies or edit existing policies refer to the sections above.
