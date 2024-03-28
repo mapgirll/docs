@@ -11,7 +11,7 @@ This guide will walk Kubernetes users through how to approach and implement segm
 
 Anyone who has a need to segment systems in their organization can use Calico's network policies to isolate, protect and secure Kubernetes workloads, namespaces, tenants, and hosts. This approach enhances the security and control of a network by limiting communication between different segments which has the benefit of isolating critical workloads, preventing lateral movement of threats, and meeting compliance requirements.
 
-Traditional firewalls, some of which Calico can integrate with, are well suited to securing system perimeters, but were not designed with dynamic, containerized environments in mind. Instead, this is implemented using purpose-built network policies that allow for different levels of granularity to secure workloads, applications, namespaces, or clusters. Network policies are the tool of choice for achieving network security over traditional firewalls due to their ability to apply to Kubernetes objects based on label selectors and not IP addresses, which are often dynamic and ephemeral. 
+Traditional firewalls, some of which Calico can integrate with, are well suited to securing system perimeters, but were not designed with dynamic, containerized environments in mind. Instead, segmentation is implemented using purpose-built network policies that allow for different levels of granularity to secure workloads, applications, namespaces, or clusters. Network policies are the tool of choice for achieving network security over traditional firewalls due to their ability to apply to Kubernetes objects based on label selectors and not IP addresses, which are often dynamic and ephemeral. 
 
 Calico has a range of functionality that makes implementing microsegmentation in containerized environments easier and faster.
 In Project Calico (Open Source), Calico network policy extends the functionality of Kubernetes network policies to:
@@ -25,6 +25,7 @@ Commercial Calico products, such as Calico Enterprise or Calico Cloud, support t
 - advanced policy organization, management and visualization,
 - observability features,
 - automatic policy recomendations,
+- DNS policy
 - policy staging, and more.
 
 When organizations need to segment and isolate their Kubernetes environments this is typically done at three different levels: [Workload Isolation](https://www.tigera.io/blog/enabling-microsegmentation-with-calico-enterprise-2/), [Namespace Isolation](https://www.tigera.io/blog/automated-namespace-isolation-with-calico/) and [Tenant Isolation](https://www.tigera.io/blog/deep-dive/implementing-tenant-isolation-in-multi-tenant-kubernetes-clusters/).
