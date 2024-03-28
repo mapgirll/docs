@@ -5,7 +5,7 @@ title: Microsegmentation
 
 # Microsegmentation
 
-This guide will walk Kubernetes users how to approach and implement segmenting their environment with network policies to achieve different levels of security granularity, depending on the requirement to segment at a cluster, tenant, namespace or workload level.
+This guide will walk Kubernetes users through how to approach and implement segmentation in their environment with network policies. This allows for different levels of security granularity, depending on the requirement to segment at a cluster, tenant, namespace or workload level.
 
 ## Overview
 
@@ -52,9 +52,9 @@ This protects each tenant from lateral movement at an infrastructure level where
 
 Before implementing a segmentation strategy in a cluster there are a few key high-level concepts that must be understood.
 These are:
-Security Domains
-Network Security
-Default Deny
+- [Security Domains](./microsegmentation#security-domains)
+- [Network Security](./microsegmentation#network-security)
+- [Default Deny](./microsegmentation#default-deny)
 
 If you are a Calico Enterprise or Calico Cloud user there are more features available that enable a faster and easier microsegmentatione experience.
 
@@ -84,12 +84,12 @@ Calico’s network policies provide a richer set of policy capabilities than Kub
 
 There is a more detailed list of Calico network policy features available [here](https://docs.tigera.io/calico/latest/network-policy/get-started/calico-policy/calico-network-policy#features). The Kubernetes documentation outlines what network policies [do](https://kubernetes.io/docs/concepts/services-networking/network-policies/) and [do not](https://kubernetes.io/docs/concepts/services-networking/network-policies/#what-you-can-t-do-with-network-policies-at-least-not-yet) support.
 
-Calico Open Source integration with Istio providers application security, and service mesh. This integration enables layers 5-7 security policy match criteria, end to end mTLS encryption and cryptographic identity. For more information read [this blog](https://www.tigera.io/blog/how-to-build-a-service-mesh-with-istio-and-calico/)
+Calico Open Source integration with Istio providers application security, and service mesh. This integration enables layers 5-7 security policy match criteria, end to end mTLS encryption and cryptographic identity. For more information read [this blog](https://www.tigera.io/blog/how-to-build-a-service-mesh-with-istio-and-calico/) to learn how to integrate Kubernetes RBAC and Calico to achieve shift-left security.
 
 Calico security policies are:
-- Declarative - define security intentions in yaml (or through the Create Policy UI in Calico Cloud or Calico Enterprise)
-- Label-based - security policies apply to endpoints based on workload identity using label selectors. These can be combined into larger expressions using multiple operators and parentheses.
-- Dynamic - Security policies are tightly coupled with workloads based on their identity, not ever-changing IP addresses
+- **Declarative** - define security intentions in yaml (or through the Create Policy UI in Calico Cloud or Calico Enterprise)
+- **Label-based** - security policies apply to endpoints based on workload identity using label selectors. These can be combined into larger expressions using multiple operators and parentheses.
+- **Dynamic** - Security policies are tightly coupled with workloads based on their identity, not ever-changing IP addresses
 
 ![Network policy anatomy](../static/img/use-cases/anatomy-of-policy.png)
 
@@ -97,9 +97,9 @@ All Calico products support label-based policies that can be applied to either a
 
 In Kubernetes clusters, by default, without any policies in place, each microservice is allowed to communicate with each other, and with any external endpoints freely.
 
-## Default Deny
+### Default Deny
 
-It is recommend to create a [default deny](https://docs.tigera.io/calico/latest/network-policy/get-started/kubernetes-default-deny) policy for your Kubernetes pods. This guarantees that if no other policy is defined that explicitly allows traffic to/from a pod, then the traffic will be denied.
+In Kubernetes, all traffic is allowed by default, unless policies apply to it. Therefore, we recommend creating a [default deny](https://docs.tigera.io/calico/latest/network-policy/get-started/kubernetes-default-deny) policy for your Kubernetes pods. This guarantees that if no other policy is defined that explicitly allows traffic to/from a pod, then the traffic will be denied.
 
 Note that an implicit default deny policy always occurs last; if any other policy allows the traffic, then the deny does not come into effect. The deny is executed only after all other policies are evaluated.
 
@@ -121,30 +121,41 @@ The diagram below shows an example of how policies for different security domain
 
 #### Global vs Namespace Policies
 
-Calico supports global network policy (GlobalNetworkPolicy); a non-namespaced resource containing rules which are applied to any endpoints (pods, VMs, host interfaces) that match a label selector.
+Calico supports global network policy (```kind: GlobalNetworkPolicy```); a non-namespaced resource containing rules which are applied to any endpoints (pods, VMs, host interfaces) that match a selector.
 Network policy is a namespaced resource that only applies to workload endpoint resources (pods, containers, VMs) within that namespace. 
 
 #### Network Policy Management
+
+**Policy Ordering**
 In Calico, you can use the order field (with precedence from the lowest value to highest) to control how policies are applied and evaluated. Defining policy order is important when you include both ```action: allow``` and ```action: deny``` rules that may apply to the same endpoint.
+
 If no network policies apply to a pod, then all traffic to/from that pod is allowed. 
+
 If one or more network policies apply to a pod containing ingress rules, then only the ingress traffic specifically allowed by those policies is allowed. 
+
 If one or more network policies apply to a pod containing egress rules, then only the egress traffic specifically allowed by those policies is allowed.
 
+**Policy Tiers**
 Calico Cloud and Calico Enterprise allow hierarchical grouping of policies into tiers. Policy Tiers allow enforcement of higher-precedence policies that cannot be circumvented by other teams. Policy tiers are evaluated based on order, as are policies within each tier. Graphically, policies are evaluated from left to right, top to bottom. RBAC for each tier can be defined to restrict who can interact with each tier.
 
 While Calico Open Source does not support policy tiers, you can use RBAC to control how different users can shape cluster security.
+
+**Staged Policies**
+These rules are used to preview network behavior and do not to enforce network traffic, and can be applied to both network or global policies. 
+
+Staged policy lets you test the traffic impact of the policy as if it were enforced, but without changing traffic flow. You can also preview the impacts of a staged policy on existing traffic. By verifying that correct flows are allowed and denied before enforcement, you can minimize misconfiguration and potential network disruption.
 
 ## Implementating microsegmentation with network policies
 
 To implement microsegmentation it is recommended to follow a structured and repeatable approach to increase likelihood of success. These can be summarized into four broad steps:
 
-1. Identify the security domains for which microsegmentation will be enforced, who will be responsible for them, who or which services need access to those security domains. 
+1. **Identify the security domains** for which microsegmentation will be enforced, who will be responsible for them, who or which services need access to those security domains. 
 
-2. [Define a policy](https://docs.tigera.io/calico-enterprise/latest/network-policy/beginners/) model using documented microservice communication for your application(s) or by analyzing traffic flows. When defining policies you should also consider: the scope of policies (global/namespace), who will be writing and applying the policies, and policy order (or tiers).
+2. **[Define a policy](https://docs.tigera.io/calico-enterprise/latest/network-policy/beginners/)** model using documented microservice communication for your application(s) or by analyzing traffic flows. When defining policies you should also consider: the scope of policies (global/namespace), who will be writing and applying the policies, and policy order (or tiers).
 
-3. [Author and deploy security policies](https://docs.tigera.io/calico-enterprise/latest/network-policy/staged-network-policies). Once all of the correct allow policies are in place, stage a [default deny posture](https://docs.tigera.io/calico-enterprise/latest/network-policy/default-deny). You may want to identify a low-impact application or security domain first to understand and evaluate the process before prioritizing segmentation of critical security domains.
+3. **[Author and deploy security policies](https://docs.tigera.io/calico-enterprise/latest/network-policy/staged-network-policies)**. Once all of the correct allow policies are in place, stage a [default deny posture](https://docs.tigera.io/calico-enterprise/latest/network-policy/default-deny). You may want to identify a low-impact application or security domain first to understand and evaluate the process before prioritizing segmentation of critical security domains.
 
-4. Re-assess any flows or new applications that may require policy remediation before enforcing a default-deny. In Project Calico, where staged policies are not supported, enforce a default deny in a staging environment to correct any policies prior to enforcing in production.
+4. **Re-assess any flows** or new applications that may require policy remediation before enforcing a default-deny. In Project Calico, where staged policies are not supported, enforce a default deny in a staging environment to correct any policies prior to enforcing in production.
 
 ### Identification of security domains
 
